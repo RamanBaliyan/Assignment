@@ -1,0 +1,86 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
+public class LongestCompoundedWord {
+    static class TrieNode {
+        Map<Character, TrieNode> children = new HashMap<>();
+        boolean isEndOfWord;
+    }
+
+    static class Trie {
+        TrieNode root = new TrieNode();
+
+        void insert(String word) {
+            TrieNode current = root;
+            for (char ch : word.toCharArray()) {
+                current.children.putIfAbsent(ch, new TrieNode());
+                current = current.children.get(ch);
+            }
+            current.isEndOfWord = true;
+        }
+
+        boolean search(String word) {
+            TrieNode current = root;
+            for (char ch : word.toCharArray()) {
+                if (!current.children.containsKey(ch)) {
+                    return false;
+                }
+                current = current.children.get(ch);
+            }
+            return current.isEndOfWord;
+        }
+    }
+ public static void main(String[] args) {
+        long startTime = System.currentTimeMillis();
+        Trie trie = new Trie();
+        List<String> words = new ArrayList<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("Input_02.txt"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                trie.insert(line);
+                words.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String longest = "";
+        String secondLongest = "";
+        for (String word : words) {
+            if (isCompoundedWord(word, trie)) {
+                if (word.length() > longest.length()) {
+                    secondLongest = longest;
+                    longest = word;
+                } else if (word.length() > secondLongest.length()) {
+                    secondLongest = word;
+                }
+            }
+   }
+
+        long endTime = System.currentTimeMillis();
+        long timeTaken = endTime - startTime;
+
+        System.out.println("Longest Compound Word: " + longest);
+        System.out.println("Second Longest Compound Word: " + secondLongest);
+        System.out.println("Time taken to process file: " + timeTaken + " milliseconds");
+    }
+
+    private static boolean isCompoundedWord(String word, Trie trie) {
+        int n = word.length();
+        if (n == 0) return false;
+
+        for (int i = 1; i <= n; i++) {
+            if (trie.search(word.substring(0, i))) {
+                String suffix = word.substring(i);
+                if (suffix.isEmpty() || trie.search(suffix) || isCompoundedWord(suffix, trie)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
